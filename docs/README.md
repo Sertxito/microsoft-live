@@ -2,7 +2,7 @@
 
 Empieza en el [README del proyecto](../README.md).
 
-- [Guion sencillo de las tres demos y prompts copiables](demo/GUION-DEMO.md).
+- [Guia explicativa de las tres demos y prompts copiables](demo/GUION-DEMO.md).
 - [Reproducir Azure en tu cuenta](demo/AZURE-EN-TU-CUENTA.md).
 
 - [Run the working local demo](demo/DEMO-01-LOCAL.md) without MCPEE, Azure or a model.

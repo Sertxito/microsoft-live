@@ -43,9 +43,9 @@ Los enlaces permiten abrir el PowerShell real y seguir su implementacion.
 - Los JSON de `.local/azure` enlazan pasos con cuenta, recursos y revision exactos.
   No son respuestas de busqueda prefabricadas, no contienen la clave y no se publican.
 
-Para presentar el valor: **infraestructura disponible -> datos cargados ->
+El recorrido completo es: **infraestructura disponible -> datos cargados ->
 imagen identificable -> revision comprobada -> consumo MCP -> agente permitido**.
-Si un eslabon falla, muestra esa evidencia y no declares exitoso el recorrido entero.
+El fallo de un eslabon impide considerar verificado el recorrido entero.
 
 ## 0. Preparacion
 
@@ -235,7 +235,7 @@ Revisa los rangos al menos cada 90 dias; el script agrega los nuevos, no elimina
 silenciosamente rangos antiguos. Para otra Geo, adapta/revisa las reglas oficiales
 antes de ejecutar; no utilices esta allow-list Europa sin comprobar tu entorno.
 
-Sigue [demo 3 del guion](GUION-DEMO.md) con **tu URL `/mcp`**.
+La [demo 3 de la guia](GUION-DEMO.md) describe la conexion con **tu URL `/mcp`**.
 Si DLP bloquea, requiere revision de la persona administradora de tu tenant.
 La demo del presentador no supero ese bloqueo; no se afirma que tu tenant lo permita.
 

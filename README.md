@@ -65,9 +65,9 @@ La publicacion se comprobo en una carpeta nueva con **solo los archivos publicos
 restore/build, **119 pruebas correctas**, demo Container Apps (`tutorial-001`)
 y demo Foundry (`tutorial-013`). No depende del estado privado del autor.
 
-## Guion para presentar y prompts para copiar
+## Guia explicativa y prompts para copiar
 
-Abre **[GUION-DEMO.md](docs/demo/GUION-DEMO.md)**: pasos cortos, lo que decir,
+La **[guia de las tres demos](docs/demo/GUION-DEMO.md)** contiene pasos,
 consultas copiables, que hace cada comando, por que importa cada comprobacion
 y que no demuestra. El [mapa de scripts Azure](docs/demo/AZURE-EN-TU-CUENTA.md#que-hace-cada-script)
 explica tambien los pasos de infraestructura, permisos, datos y promocion.
@@ -99,7 +99,7 @@ garantiza disponibilidad futura ni evita las politicas de Copilot Studio.
 - Activa orquestacion generativa y crea la conexion con tu clave.
 - No necesitas Swagger para el asistente nativo MCP.
 
-Descripcion y prompts: [guion](docs/demo/GUION-DEMO.md).
+Descripcion y prompts: [guia de las demos](docs/demo/GUION-DEMO.md).
 Configuracion completa: [conexion MCP](docs/integration-mcp-copilot-studio.md).
 Si DLP lo bloquea, la persona administradora debe revisar la politica que afecta
 al entorno y autorizar el conector/endpoint de forma acotada. Tener una cuenta
@@ -134,7 +134,7 @@ demo aislado** cuando termines; este repositorio no ejecuta limpieza automatica.
 ## Documentacion y evidencia
 
 - [Indice](docs/README.md), [arquitectura](docs/architecture.md), [seguridad](docs/security.md).
-- [Guion de las tres demos](docs/demo/GUION-DEMO.md).
+- [Guia explicativa de las tres demos](docs/demo/GUION-DEMO.md).
 - [Despliegue en tu cuenta](docs/demo/AZURE-EN-TU-CUENTA.md).
 - [Postman](docs/integration-postman.md), [MCP y Copilot Studio](docs/integration-mcp-copilot-studio.md).
 - [Pruebas y alcance de las verificaciones](docs/verification-matrix.md).

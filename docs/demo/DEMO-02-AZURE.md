@@ -5,7 +5,7 @@ https://ca-m365live-demo.thankfuldesert-86f8de10.westeurope.azurecontainerapps.i
 
 This host is historical presenter evidence, not a public service with shared
 credentials. To reproduce, use [your own Azure account](AZURE-EN-TU-CUENTA.md) and
-the [three-demo script](GUION-DEMO.md). Do not request the presenter's key.
+the [three-demo guide](GUION-DEMO.md). Do not request the presenter's key.
 
 The owner approved a no-Entra consumer demo: `X-API-Key`, HTTPS, the
 approved workstation IPv4 /32 and later the official Europe connector ranges.
