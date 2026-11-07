@@ -63,6 +63,11 @@ ranking/latency and rollback availability require real acceptance. If stage
 activities are mapped to a different table, inspect that resource's schema
 before claiming the query proves ingestion. No body/token/query logging is needed.
 
+The [public telemetry walkthrough](demo/GUION-DEMO.md#cierre-con-telemetria-del-backend)
+explains where to open workspace Logs (not Activity log), how to correlate a
+fresh MCP search, and how to interpret stage outcomes, recorded durations,
+result counts and revision without claiming Copilot Studio acceptance.
+
 Per the approved cleanup decision, the owner removes the isolated resource group
 manually after inspecting tenant/subscription, exact resource-group ID, tags,
 resource inventory and dependencies. Stop if anything is shared or ambiguous.

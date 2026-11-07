@@ -106,6 +106,18 @@ al entorno y autorizar el conector/endpoint de forma acotada. Tener una cuenta
 personal o ser Owner en Azure **no concede** administracion de Power Platform.
 No se recomienda desactivar todas las protecciones ni buscar un bypass.
 
+### Cierre con telemetria en Azure
+
+Una busqueda MCP puede seguirse desde su `structuredContent.correlationId`
+hasta los registros del backend. En Azure Portal, abre el **Log Analytics
+workspace de tu demo > Logs**, no **Activity log**. En el despliegue original
+el workspace se llama `log-m365live-demo`.
+
+La [guia de telemetria](docs/demo/GUION-DEMO.md#cierre-con-telemetria-del-backend)
+incluye pasos del portal, consulta KQL copiable e interpretacion de etapas,
+resultados, duraciones y revision. Puede utilizarse con una llamada de Postman
+aunque DLP bloquee Copilot Studio; no demuestra una llamada desde el agente.
+
 ## Arquitectura y limites
 
 ```text
@@ -135,6 +147,7 @@ demo aislado** cuando termines; este repositorio no ejecuta limpieza automatica.
 
 - [Indice](docs/README.md), [arquitectura](docs/architecture.md), [seguridad](docs/security.md).
 - [Guia explicativa de las tres demos](docs/demo/GUION-DEMO.md).
+- [Telemetria del backend](docs/demo/GUION-DEMO.md#cierre-con-telemetria-del-backend).
 - [Despliegue en tu cuenta](docs/demo/AZURE-EN-TU-CUENTA.md).
 - [Postman](docs/integration-postman.md), [MCP y Copilot Studio](docs/integration-mcp-copilot-studio.md).
 - [Pruebas y alcance de las verificaciones](docs/verification-matrix.md).

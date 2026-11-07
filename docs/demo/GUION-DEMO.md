@@ -281,6 +281,81 @@ Que MCP responda en Postman no significa que la politica del entorno permita
 crear la conexion en Copilot Studio. Este fallo no se resuelve recompilando
 ni quitando la clave de la API.
 
+## Cierre con telemetria del backend
+
+La telemetria permite relacionar una respuesta de busqueda con las etapas
+registradas por el servicio, incluso si la conexion de Copilot Studio esta
+bloqueada. No requiere una nueva infraestructura: el despliegue de esta demo
+incluye Application Insights y Log Analytics. El runtime debe tener habilitada
+la exportacion con `HARNESS_TELEMETRY_EXPORT=true` y su connection string configurada.
+Consultar los registros requiere permisos de lectura sobre el workspace.
+
+### Recorrido en Postman y Azure Portal
+
+1. En Postman Desktop, ejecuta **04 Buscar tutoriales** de la coleccion MCP.
+2. Copia `structuredContent.correlationId` de esa respuesta. Si el sobre es
+   `text/event-stream`, el JSON esta en la linea `data:`.
+   El `id` JSON-RPC de la peticion no sustituye al `correlationId`.
+3. En Azure Portal, abre tu grupo de demo y su **Log Analytics workspace**.
+   En el despliegue original se llama **log-m365live-demo**; en otra cuenta
+   debe seleccionarse el recurso creado por su propio despliegue.
+4. En el menu izquierdo del workspace, abre **Logs**, debajo de
+   **Diagnose and solve problems**. **Activity log** muestra operaciones
+   administrativas de Azure, no las etapas de busqueda de la aplicacion.
+5. Cierra el selector de consultas si aparece. Si el editor esta en
+   **Simple mode**, cambia a **KQL mode**.
+6. Pega la siguiente consulta, sustituye `<CORRELATION-ID>` por el valor
+   copiado y pulsa **Run / Ejecutar**.
+
+```kusto
+AppDependencies
+| where TimeGenerated > ago(30m)
+| where tostring(Properties["correlation.id"]) == "<CORRELATION-ID>"
+| project
+    TimeGenerated,
+    Etapa = tostring(Properties["harness.stage"]),
+    Resultado = tostring(Properties["harness.outcome"]),
+    DuracionMs = tolong(Properties["harness.duration_ms"]),
+    Resultados = toint(Properties["harness.result_count"]),
+    Revision = tostring(Properties["harness.revision"])
+| order by TimeGenerated asc
+```
+
+### Interpretacion
+
+| Campo | Significado |
+| --- | --- |
+| TimeGenerated | Momento del registro, ordenado cronologicamente. |
+| Etapa | Paso instrumentado, por ejemplo auth.validate, authorization.check, capability.route, search.query, response.validate, http.request o evidence.write. Las etapas presentes dependen del recorrido de esa peticion. |
+| Resultado | Resultado registrado por la etapa; permite distinguir pasos correctos de fallos sin exponer la credencial. |
+| DuracionMs | Duracion registrada por la instrumentacion de esa etapa. Puede ser cero si no se midio; no es necesariamente la latencia total ni la duracion automatica del span. |
+| Resultados | Numero de documentos cuando la etapa lo registra. Un valor vacio en otra etapa no significa cero resultados de busqueda. |
+| Revision | Revision de Container Apps que produjo el registro; identifica el backend que atendio la peticion. |
+
+Los siete nombres de etapa anteriores se verificaron en Azure para una peticion
+REST. No deben exigirse como una lista fija para toda llamada MCP: initialize,
+discovery, busqueda y errores recorren caminos distintos.
+
+La evidencia relaciona **respuesta MCP -> correlationId -> procesamiento del
+backend -> revision desplegada**. Si la peticion se envio desde Postman, acredita
+ese recorrido, no una llamada de Copilot Studio ni su razonamiento.
+Cuando la conexion del agente funcione, la correlacion debe obtenerse del
+resultado real de su herramienta y contrastarse con el detalle de ejecucion.
+
+### Si la consulta no devuelve filas
+
+La ingestacion puede tardar varios minutos. Comprueba el workspace seleccionado,
+el identificador completo y el intervalo temporal; si la llamada es anterior,
+amplia el intervalo tanto en el editor como en la consulta. Despues revisa
+la configuracion de exportacion y los permisos. Una consulta vacia no acredita
+que no hubo peticion ni constituye una verificacion correcta de telemetria.
+
+`AppDependencies` y las propiedades utilizadas corresponden al mapeo verificado
+en este despliegue. Si cambia el exportador o su esquema, es necesario revisar
+las tablas disponibles antes de reutilizar la consulta.
+No hace falta mostrar API keys, connection strings ni headers de autenticacion.
+Mas detalles en [operaciones](../operations.md).
+
 ## Resumen
 
 La misma logica de busqueda se utiliza desde tres superficies: prueba local,
