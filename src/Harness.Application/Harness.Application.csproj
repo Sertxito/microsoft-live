@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Harness.Domain\Harness.Domain.csproj" />
+    <ProjectReference Include="..\Harness.Contracts\Harness.Contracts.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "Microsoft Live - MCP desplegado",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Real MCP Streamable HTTP checks, not REST search. Set baseUrl locally without trailing slash and apiKey in Postman Vault (secret name apiKey). Never sync/export the key. Run requests in order; no automatic retries."
+  },
+  "variable": [{ "key": "baseUrl", "value": "" }],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "X-API-Key", "type": "string" },
+      { "key": "value", "value": "{{vault:apiKey}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "event": [{
+    "listen": "test",
+    "script": {
+      "type": "text/javascript",
+      "exec": [
+        "const name = pm.info.requestName;",
+        "const negative = name.startsWith('06') || name.startsWith('07');",
+        "const notification = name.startsWith('02');",
+        "pm.test('Expected HTTP status', () => pm.response.to.have.status(negative ? 401 : notification ? 202 : 200));",
+        "if (!negative && !notification) {",
+        "  const raw = pm.response.text();",
+        "  let rpc;",
+        "  if ((pm.response.headers.get('Content-Type') || '').startsWith('text/event-stream')) {",
+        "    const messages = raw.split(/\\r?\\n/).filter(line => line.startsWith('data:')).map(line => JSON.parse(line.slice(5).trim()));",
+        "    const id = JSON.parse(pm.request.body.raw).id;",
+        "    const matches = messages.filter(message => message.id === id);",
+        "    pm.test('Exactly one matching MCP response', () => pm.expect(matches.length).to.eql(1));",
+        "    rpc = matches[0];",
+        "  } else { rpc = JSON.parse(raw); }",
+        "  pm.test('MCP JSON-RPC result', () => { pm.expect(rpc.jsonrpc).to.eql('2.0'); pm.expect(rpc.id).to.eql(JSON.parse(pm.request.body.raw).id); pm.expect(rpc.error).to.eql(undefined); pm.expect(rpc.result).to.be.an('object'); });",
+        "  const result = rpc.result;",
+        "  if (name.startsWith('01')) pm.test('MCP negotiated with tools', () => { pm.expect(result.protocolVersion).to.eql('2025-03-26'); pm.expect(result.capabilities.tools).to.be.an('object'); });",
+        "  if (name.startsWith('03')) pm.test('Only buscar_tutoriales exposed', () => { pm.expect(result.tools.length).to.eql(1); pm.expect(result.tools[0].name).to.eql('buscar_tutoriales'); pm.expect(result.tools[0].inputSchema.required).to.eql(['query']); });",
+        "  if (name.startsWith('04')) pm.test('Real correlated retrieval, no generated answer', () => { const data = result.structuredContent; pm.expect(result.isError).not.to.eql(true); pm.expect(data.query).to.eql('container apps'); pm.expect(data.results.length).to.eql(1); pm.expect(data.results[0].id).to.eql('tutorial-001'); pm.expect(data.results[0].source).to.match(/^https?:\\/\\//); pm.expect(data.generatedAnswer).to.eql(null); pm.expect(data.correlationId).to.eql(pm.response.headers.get('X-Correlation-ID')); });",
+        "  if (name.startsWith('05')) pm.test('Invalid input is an explicit MCP tool error', () => { pm.expect(result.isError).to.eql(true); pm.expect(result.structuredContent.code).to.eql('validation_error'); });",
+        "}"
+      ]
+    }
+  }],
+  "item": [
+    {
+      "name": "01 - Inicializar MCP",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/mcp",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          { "key": "MCP-Protocol-Version", "value": "2025-03-26" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"clientInfo\":{\"name\":\"postman-demo\",\"version\":\"1.0\"}}}" }
+      }
+    },
+    {
+      "name": "02 - Confirmar inicializacion",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/mcp",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          { "key": "MCP-Protocol-Version", "value": "2025-03-26" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}" }
+      }
+    },
+    {
+      "name": "03 - Listar herramientas MCP",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/mcp",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          { "key": "MCP-Protocol-Version", "value": "2025-03-26" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/list\",\"params\":{}}" }
+      }
+    },
+    {
+      "name": "04 - Buscar tutoriales mediante MCP",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/mcp",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          { "key": "MCP-Protocol-Version", "value": "2025-03-26" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/call\",\"params\":{\"name\":\"buscar_tutoriales\",\"arguments\":{\"query\":\"container apps\",\"maxResults\":1,\"audience\":\"community\"}}}" }
+      }
+    },
+    {
+      "name": "05 - Argumento invalido",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/mcp",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          { "key": "MCP-Protocol-Version", "value": "2025-03-26" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"tools/call\",\"params\":{\"name\":\"buscar_tutoriales\",\"arguments\":{\"query\":\"ab\"}}}" }
+      }
+    },
+    {
+      "name": "06 - Sin clave (401)",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/mcp", "auth": { "type": "noauth" },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          { "key": "MCP-Protocol-Version", "value": "2025-03-26" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"jsonrpc\":\"2.0\",\"id\":6,\"method\":\"tools/list\",\"params\":{}}" }
+      }
+    },
+    {
+      "name": "07 - Clave incorrecta (401)",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/mcp", "auth": { "type": "noauth" },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          { "key": "MCP-Protocol-Version", "value": "2025-03-26" },
+          { "key": "X-API-Key", "value": "invalid-key" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/list\",\"params\":{}}" }
+      }
+    }
+  ]
+}

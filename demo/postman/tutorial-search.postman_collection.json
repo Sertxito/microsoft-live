@@ -1,0 +1,63 @@
+{
+  "info": {
+    "name": "Tutorial Search Harness",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Supply endpoint and bearerToken at runtime. Never export populated credentials. Copilot Studio tenant compatibility is not verified."
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "" },
+    { "key": "bearerToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Public minimal liveness",
+      "request": { "method": "GET", "url": "{{baseUrl}}/health/live" }
+    },
+    {
+      "name": "Protected readiness",
+      "request": {
+        "method": "GET", "url": "{{baseUrl}}/health/ready",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bearerToken}}", "type": "string" }] }
+      }
+    },
+    {
+      "name": "Discover capabilities",
+      "request": {
+        "method": "GET", "url": "{{baseUrl}}/api/capabilities",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bearerToken}}", "type": "string" }] }
+      }
+    },
+    {
+      "name": "Search tutorials",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/api/tutorials/search",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bearerToken}}", "type": "string" }] },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"query\":\"container apps\",\"maxResults\":5,\"audience\":\"community\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Successful retrieval', () => pm.response.to.have.status(200));",
+        "pm.test('Correlated sources, no synthesis', () => { const body = pm.response.json(); pm.expect(body.correlationId).to.eql(pm.response.headers.get('X-Correlation-ID')); pm.expect(body.generatedAnswer).to.eql(null); body.results.forEach(hit => pm.expect(hit.source).to.match(/^https?:\\/\\//)); });"
+      ] } }]
+    },
+    {
+      "name": "Invalid query (400)",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/api/tutorials/search",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bearerToken}}", "type": "string" }] },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"query\":\"ab\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Rejected input', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Missing token (401)",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/api/tutorials/search",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"query\":\"azure\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Authentication required', () => pm.response.to.have.status(401));"] } }]
+    }
+  ]
+}

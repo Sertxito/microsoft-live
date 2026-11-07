@@ -1,0 +1,11 @@
+**
+!global.json
+!Directory.Build.props
+!src/
+!src/**
+src/**/bin/
+src/**/obj/
+!knowledge/
+!knowledge/tutorials/
+!knowledge/tutorials/catalog.json
+!.dockerignore

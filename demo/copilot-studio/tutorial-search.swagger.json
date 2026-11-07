@@ -1,0 +1,117 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Tutorial Search Demo",
+    "version": "1.0.0",
+    "description": "Busca tutoriales Microsoft y devuelve resultados con fuentes. No genera respuestas ni inventa enlaces."
+  },
+  "host": "ca-m365live-demo.thankfuldesert-86f8de10.westeurope.azurecontainerapps.io",
+  "basePath": "/",
+  "schemes": ["https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "securityDefinitions": {
+    "apiKeyAuth": { "type": "apiKey", "name": "X-API-Key", "in": "header" }
+  },
+  "security": [{ "apiKeyAuth": [] }],
+  "paths": {
+    "/api/tutorials/search": {
+      "post": {
+        "operationId": "buscar_tutoriales",
+        "summary": "Buscar tutoriales Microsoft",
+        "description": "Usa esta herramienta cuando el usuario busque tutoriales sobre tecnologias Microsoft. Devuelve titulos, resumenes y fuentes; no inventes fuentes.",
+        "x-ms-summary": "Buscar tutoriales Microsoft",
+        "parameters": [{
+          "name": "body",
+          "in": "body",
+          "required": true,
+          "schema": { "$ref": "#/definitions/TutorialSearchRequest" }
+        }],
+        "responses": {
+          "200": {
+            "description": "Tutoriales recuperados con fuentes, sin respuesta generada.",
+            "schema": { "$ref": "#/definitions/TutorialSearchResponse" }
+          },
+          "400": { "$ref": "#/responses/Error" },
+          "401": { "$ref": "#/responses/Error" },
+          "403": { "$ref": "#/responses/Error" },
+          "404": { "$ref": "#/responses/Error" },
+          "408": { "$ref": "#/responses/Error" },
+          "413": { "$ref": "#/responses/Error" },
+          "429": { "$ref": "#/responses/Error" },
+          "500": { "$ref": "#/responses/Error" },
+          "503": { "$ref": "#/responses/Error" }
+        }
+      }
+    }
+  },
+  "responses": {
+    "Error": {
+      "description": "Error controlado con identificador de correlacion.",
+      "schema": { "$ref": "#/definitions/ApiError" }
+    }
+  },
+  "definitions": {
+    "TutorialSearchRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query"],
+      "properties": {
+        "query": {
+          "type": "string", "minLength": 3, "maxLength": 200,
+          "description": "Consulta de tutoriales indicada por el usuario.",
+          "x-ms-summary": "Consulta"
+        },
+        "maxResults": {
+          "type": "integer", "minimum": 1, "maximum": 5, "default": 5,
+          "description": "Numero maximo de tutoriales."
+        },
+        "audience": {
+          "type": "string", "enum": ["community"], "default": "community",
+          "description": "Audiencia de la demo; siempre community."
+        }
+      }
+    },
+    "TutorialSearchResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correlationId", "query", "results", "generatedAnswer", "durationMs"],
+      "properties": {
+        "correlationId": { "type": "string", "format": "uuid" },
+        "query": { "type": "string" },
+        "results": {
+          "type": "array", "maxItems": 5,
+          "items": { "$ref": "#/definitions/TutorialSearchResult" }
+        },
+        "generatedAnswer": {
+          "type": "string", "x-nullable": true,
+          "description": "Siempre null. Swagger 2.0 no representa el tipo null exclusivo; no se genera texto."
+        },
+        "durationMs": { "type": "integer", "format": "int64", "minimum": 0 }
+      }
+    },
+    "TutorialSearchResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "summary", "tags", "source", "score"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "source": { "type": "string", "format": "uri" },
+        "score": { "type": "number", "minimum": 0 }
+      }
+    },
+    "ApiError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "correlationId"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "correlationId": { "type": "string", "format": "uuid" }
+      }
+    }
+  }
+}

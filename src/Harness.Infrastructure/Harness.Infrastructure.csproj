@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Azure.Search.Documents" Version="11.7.0" />
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <ProjectReference Include="..\Harness.Domain\Harness.Domain.csproj" />
+    <ProjectReference Include="..\Harness.Application\Harness.Application.csproj" />
+    <Content Include="..\..\knowledge\tutorials\catalog.json"
+             Link="knowledge\tutorials\catalog.json"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

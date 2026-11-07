@@ -1,0 +1,10 @@
+{
+  "provider": "LocalDeterministic",
+  "minimumScore": 0.2,
+  "expectedResultCoverage": 1.0,
+  "responsesWithCorrelationId": 1.0,
+  "resultsWithSources": 1.0,
+  "unauthorizedDocuments": 0,
+  "generatedAnswers": 0,
+  "azureLatencyThreshold": null
+}

@@ -1,0 +1,18 @@
+[
+  { "query": "container apps", "expectedId": "tutorial-001" },
+  { "query": "ai search", "expectedId": "tutorial-002" },
+  { "query": "github copilot", "expectedId": "tutorial-003" },
+  { "query": "mcp", "expectedId": "tutorial-004" },
+  { "query": "dotnet", "expectedId": "tutorial-005" },
+  { "query": "opentelemetry", "expectedId": "tutorial-006" },
+  { "query": "security", "expectedId": "tutorial-007" },
+  { "query": "architecture", "expectedId": "tutorial-008" },
+  { "query": "mentoring", "expectedId": "tutorial-009" },
+  { "query": "application insights", "expectedId": "tutorial-010" },
+  { "query": "microsoft foundry", "expectedId": "tutorial-013" },
+  { "query": "Que tutoriales tenemos sobre Azure Container Apps", "expectedId": "tutorial-001" },
+  { "query": "Busco contenido para empezar con GitHub Copilot", "expectedId": "tutorial-003" },
+  { "query": "zzzznonexistent", "expectedId": null },
+  { "query": "obsoleto", "expectedId": null },
+  { "query": "restricted", "expectedId": null }
+]

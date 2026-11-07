@@ -1,0 +1,53 @@
+{
+  "info": {
+    "name": "Tutorial Search Harness - API key demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Explicit API-key deployment only. Set local unexported baseUrl/apiKey. HTTPS and operator IP restriction remain mandatory."
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "" },
+    { "key": "apiKey", "value": "" }
+  ],
+  "item": [
+    { "name": "Public minimal liveness", "request": { "method": "GET", "url": "{{baseUrl}}/health/live" } },
+    {
+      "name": "Protected readiness",
+      "request": {
+        "method": "GET", "url": "{{baseUrl}}/health/ready",
+        "auth": { "type": "apikey", "apikey": [
+          { "key": "key", "value": "X-API-Key", "type": "string" },
+          { "key": "value", "value": "{{apiKey}}", "type": "string" },
+          { "key": "in", "value": "header", "type": "string" }
+        ] }
+      }
+    },
+    {
+      "name": "Search tutorials",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/api/tutorials/search",
+        "auth": { "type": "apikey", "apikey": [
+          { "key": "key", "value": "X-API-Key", "type": "string" },
+          { "key": "value", "value": "{{apiKey}}", "type": "string" },
+          { "key": "in", "value": "header", "type": "string" }
+        ] },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"query\":\"azure\",\"maxResults\":5,\"audience\":\"community\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Successful retrieval', () => pm.response.to.have.status(200));",
+        "pm.test('Correlated retrieval only', () => { const body = pm.response.json(); pm.expect(body.correlationId).to.eql(pm.response.headers.get('X-Correlation-ID')); pm.expect(body.generatedAnswer).to.eql(null); });"
+      ] } }]
+    },
+    {
+      "name": "Missing key (401)",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/api/tutorials/search",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"query\":\"azure\"}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('Authentication required', () => pm.response.to.have.status(401));"
+      ] } }]
+    }
+  ]
+}

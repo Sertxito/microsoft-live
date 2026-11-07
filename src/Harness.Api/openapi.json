@@ -1,0 +1,78 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Tutorial Search Harness", "version": "1.0.0" },
+  "paths": {
+    "/api/tutorials/search": {
+      "post": {
+        "operationId": "buscar_tutoriales",
+        "security": [{ "bearerAuth": [] }, { "apiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TutorialSearchRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Retrieved tutorials; no generated answer.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TutorialSearchResponse" } } } },
+          "400": { "$ref": "#/components/responses/Error" },
+          "401": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" },
+          "408": { "$ref": "#/components/responses/Error" },
+          "413": { "$ref": "#/components/responses/Error" },
+          "429": { "$ref": "#/components/responses/Error" },
+          "500": { "$ref": "#/components/responses/Error" },
+          "503": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" },
+      "apiKeyAuth": { "type": "apiKey", "in": "header", "name": "X-API-Key",
+        "description": "Only when the deployment explicitly selects ApiKey mode; JWT remains the default." }
+    },
+    "responses": {
+      "Error": {
+        "description": "Controlled error; correlation ID also in X-Correlation-ID.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } }
+      }
+    },
+    "schemas": {
+      "TutorialSearchRequest": {
+        "type": "object", "additionalProperties": false, "required": ["query"],
+        "properties": {
+          "query": { "type": "string", "minLength": 3, "maxLength": 200 },
+          "maxResults": { "type": ["integer", "null"], "minimum": 1, "maximum": 5, "default": 5 },
+          "audience": { "type": "string", "const": "community", "default": "community" }
+        }
+      },
+      "TutorialSearchResponse": {
+        "type": "object", "additionalProperties": false,
+        "required": ["correlationId", "query", "results", "generatedAnswer", "durationMs"],
+        "properties": {
+          "correlationId": { "type": "string", "format": "uuid" },
+          "query": { "type": "string" },
+          "results": { "type": "array", "maxItems": 5, "items": { "$ref": "#/components/schemas/TutorialSearchResult" } },
+          "generatedAnswer": { "type": "null" },
+          "durationMs": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "TutorialSearchResult": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "title", "summary", "tags", "source", "score"],
+        "properties": {
+          "id": { "type": "string" }, "title": { "type": "string" }, "summary": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "source": { "type": "string", "format": "uri" }, "score": { "type": "number", "minimum": 0 }
+        }
+      },
+      "ApiError": {
+        "type": "object", "additionalProperties": false, "required": ["code", "message", "correlationId"],
+        "properties": {
+          "code": { "type": "string" }, "message": { "type": "string" },
+          "correlationId": { "type": "string", "format": "uuid" }
+        }
+      }
+    }
+  }
+}

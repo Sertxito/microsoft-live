@@ -1,0 +1,25 @@
+param location string
+param name string
+param tags object
+param runtimePrincipalId string
+resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+  name: name
+  location: location
+  tags: tags
+  sku: { name: 'Basic' }
+  properties: {
+    adminUserEnabled: false
+    publicNetworkAccess: 'Enabled'
+  }
+}
+resource pull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(registry.id, runtimePrincipalId, 'acrpull')
+  scope: registry
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
+    principalId: runtimePrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+output name string = registry.name
+output loginServer string = registry.properties.loginServer
