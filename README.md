@@ -36,6 +36,13 @@ dotnet build Harness.sln --no-restore
 pwsh -NoProfile -File scripts\demo-local.ps1 -Query "container apps"
 ```
 
+**Que hace cada paso:** `git clone` descarga el codigo; `Set-Location` entra en
+el proyecto; `dotnet restore` descarga sus dependencias; `dotnet build` compila
+sin repetir la restauracion. Hasta aqui no hemos demostrado una busqueda.
+`demo-local.ps1` ejecuta la API en memoria y envia peticiones HTTP reales al
+host de pruebas: permite observar autenticacion, busqueda y trazabilidad.
+No imprime una respuesta guardada ni crea recursos Azure.
+
 Esperado: liveness 200, acceso anonimo 401, readiness autorizada 200 y
 `tutorial-001`, fuente, correlacion y `generatedAnswer: null`.
 El host de esta demo es **en memoria**, con JWTs efimeros exclusivos de pruebas;
@@ -61,7 +68,9 @@ y demo Foundry (`tutorial-013`). No depende del estado privado del autor.
 ## Guion para presentar y prompts para copiar
 
 Abre **[GUION-DEMO.md](docs/demo/GUION-DEMO.md)**: pasos cortos, lo que decir,
-consultas copiables, resultados esperados y salida honesta si DLP bloquea.
+consultas copiables, que hace cada comando, por que importa cada comprobacion
+y que no demuestra. El [mapa de scripts Azure](docs/demo/AZURE-EN-TU-CUENTA.md#que-hace-cada-script)
+explica tambien los pasos de infraestructura, permisos, datos y promocion.
 
 ## Demo 2: tu Azure y Postman
 

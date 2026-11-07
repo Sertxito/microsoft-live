@@ -10,6 +10,43 @@ No necesitas registrar aplicaciones consumidoras en Entra: esta ruta usa API key
 Las managed identities de Azure siguen siendo necesarias para Search y ACR.
 No copies IDs, secretos o recibos de otra persona.
 
+## Que hace cada script
+
+Esta tabla es para entender la preparacion antes de copiar comandos.
+**Comprobar, crear infraestructura, subir datos y aceptar una revision son
+operaciones distintas**. Un paso correcto no acredita los siguientes.
+Los enlaces permiten abrir el PowerShell real y seguir su implementacion.
+
+| Script / accion | Que ejecuta y por que existe | Salida o evidencia; limite |
+| --- | --- | --- |
+| [validate-azure-local.ps1](../../scripts/validate-azure-local.ps1) | Analiza sintaxis PowerShell, compila los dos Bicep a ARM y comprueba reglas de seguridad, imagenes fijadas y esquema/catalogo. | Validacion local de la preparacion; no crea recursos ni demuestra cuotas, permisos o conectividad cloud. Requiere Azure CLI/Bicep disponibles. |
+| [deploy-foundation.ps1](../../scripts/deploy-foundation.ps1) / Validate | Pide a Azure validar el template de infraestructura en tu grupo, despues de comprobar cuenta y grupo de demo. | Errores de validacion remota o resultado correcto; no despliega el servicio ni carga datos. |
+| Mismo script / WhatIf | Pide a Azure calcular los cambios previstos a nivel de recursos. | Inventario para revisar antes de autorizar; una prevision no garantiza que el despliegue posterior termine bien. |
+| Mismo script / Deploy | Despliega la base: Search, Blob, ACR, entorno Container Apps, monitorizacion, identidades y roles acotados. | Guarda nombres/IDs en `.local/azure/foundation.json`; aun no publica imagen, catalogo ni API. Crea recursos facturables. |
+| [grant-demo-loader.ps1](../../scripts/grant-demo-loader.ps1) | Asegura tres roles acotados para el operador que carga datos, sin dar escritura al runtime. | Asignaciones RBAC; su existencia no garantiza propagacion inmediata ni una carga correcta. |
+| [load-azure-knowledge.ps1](../../scripts/load-azure-knowledge.ps1) | Comprueba la identidad del operador y el esquema; crea el indice si falta, sube el JSON a Blob y hace mergeOrUpload de 13 documentos en Search. | Comprueba la aceptacion de cada documento; no borra documentos previos ni demuestra todavia una busqueda desde la API. |
+| [build-azure-image.ps1](../../scripts/build-azure-image.ps1) | Sube una allow-list de fuentes a ACR y construye la imagen sin Docker local. | Devuelve referencia con digest SHA-256: identifica la imagen exacta, no solo un tag mutable. Tiene transferencia/coste y no la despliega. |
+| [deploy-candidate.ps1](../../scripts/deploy-candidate.ps1) / Validate, WhatIf, Deploy | Valida/previsualiza o crea una revision con esa imagen, credencial elegida, identidad y acceso IPv4 /32; preserva el trafico aceptado en actualizaciones. | Guarda `.local/azure/candidate.json` al desplegar. Revision creada no significa busqueda verificada; el primer bootstrap no tiene predecesor. |
+| [smoke-test.ps1](../../scripts/smoke-test.ps1) | Hace llamadas REST de salud, capacidades, busqueda y casos negativos; al promocionar comprueba tambien revision y modo Azure. | Evidencia de HTTP, autenticacion y contrato de recuperacion en ese momento; no verifica MCP ni cambia trafico. |
+| [smoke-mcp.ps1](../../scripts/smoke-mcp.ps1) | Negocia MCP, descubre la herramienta, busca un documento conocido y prueba credenciales/argumentos invalidos. | Falla ante estados o datos inesperados; prueba protocolo y herramienta, no un agente, carga sostenida ni disponibilidad futura. |
+| [set-demo-traffic.ps1](../../scripts/set-demo-traffic.ps1) / Promote | Ejecuta smoke REST nuevo y, si el candidate exige MCP, smoke MCP nuevo; revalida trafico y envia el 100% a la revision comprobada. | Guarda recibo `traffic-promote.json`; no confia solo en un smoke anterior ni elimina la revision previa. En bootstrap verifica/acepta la primera revision ya accesible. |
+| [set-copilot-access.ps1](../../scripts/set-copilot-access.ps1) / Preview, Apply | Consulta rangos oficiales de conectores Europa; muestra o agrega los que faltan manteniendo HTTPS, autenticacion, trafico e imagen. | Guarda `.local/azure/copilot-access.json` tras verificar Apply. Permitir red no concede permisos Power Platform ni elimina bloqueos DLP. |
+
+**Como leer los comandos:**
+- `@context` y `@candidate` expanden tablas de parametros ya definidas en esta
+  consola; no son archivos ni credenciales preconfiguradas del presentador.
+- `-Action` elige la operacion del script. `Validate`/`WhatIf` remotos no son
+  despliegues; `Deploy`, `Promote` y `Apply` si pueden modificar Azure.
+- Los switches `-Authorize...` expresan consentimiento para llamadas, coste,
+  subida de codigo/datos o cambios RBAC/red. No son permisos Azure: si tu cuenta
+  carece del rol necesario, la operacion sigue fallando.
+- Los JSON de `.local/azure` enlazan pasos con cuenta, recursos y revision exactos.
+  No son respuestas de busqueda prefabricadas, no contienen la clave y no se publican.
+
+Para presentar el valor: **infraestructura disponible -> datos cargados ->
+imagen identificable -> revision comprobada -> consumo MCP -> agente permitido**.
+Si un eslabon falla, muestra esa evidencia y no declares exitoso el recorrido entero.
+
 ## 0. Preparacion
 
 - Completa restore/build del [README](../../README.md).
